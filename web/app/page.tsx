@@ -38,7 +38,10 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, setCurrentPage }) => {
           
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <div className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-2xl shadow-2xl shadow-purple-500/30">
-              <Layers className="w-6 h-6 text-white" />
+              <img 
+                  src={"black_glasses.png"}
+                  className="h-6"
+              />
               <span className="text-xl font-bold text-white">WalTer</span>
             </div>
           </div>
