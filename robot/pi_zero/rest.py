@@ -4,7 +4,8 @@ import os
 
 class GettableState(Enum):
     NONE = 0
-    TAKE_PICTURE = 1
+    START_CAPTURING = 1
+    STOP_CAPTURING = 2
 
 class RestEndpoint:
     def __init__(self, server_url):
@@ -15,14 +16,21 @@ class RestEndpoint:
 
         with open(image_path, "rb") as f:
             files = {"image": (os.path.basename(image_path), f, "image/jpeg")}
-            r = requests.post(self.server_url, files=files, data=data)
+            try:
+                r = requests.post(self.server_url, files=files, data=data, timeout=30)
+            except Exception as e:
+                print(f"WARN: failed to send post: {e}", flush=True)
 
         return 200 <= r.status_code < 300
 
     def post_error(self, error_string: str) -> bool:
         data = [("type", "error"), ("error_string", error_string)]
 
-        r = requests.post(self.server_url, data=data)
+        try:
+            r = requests.post(self.server_url, data=data, timeout=30)
+        except Exception as e:
+            print(f"WARN: failed to send post: {e}", flush=True)
+
         return 200 <= r.status_code < 300
 
     def get(self) -> GettableState:
