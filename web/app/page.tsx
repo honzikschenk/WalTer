@@ -1,8 +1,41 @@
 import Image from "next/image";
+import CardNav from "./components/nav";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      <CardNav
+        logo="/next.svg"
+        items={[
+          {
+            label: "Item 1",
+            bgColor: "#f00",
+            textColor: "#fff",
+            links: [
+              { label: "Link 1", href: "/link1", ariaLabel: "Link 1" },
+              { label: "Link 2", href: "/link2", ariaLabel: "Link 2" },
+            ],
+          },
+          {
+            label: "Item 2",
+            bgColor: "#0f0",
+            textColor: "#fff",
+            links: [
+              { label: "Link 1", href: "/link1", ariaLabel: "Link 1" },
+              { label: "Link 2", href: "/link2", ariaLabel: "Link 2" },
+            ],
+          },
+          {
+            label: "Item 3",
+            bgColor: "#00f",
+            textColor: "#fff",
+            links: [
+              { label: "Link 1", href: "/link1", ariaLabel: "Link 1" },
+              { label: "Link 2", href: "/link2", ariaLabel: "Link 2" },
+            ],
+          },
+        ]}
+      />
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <Image
           className="dark:invert"
