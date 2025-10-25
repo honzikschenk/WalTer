@@ -172,7 +172,7 @@ const CardNav: React.FC<CardNavProps> = ({
             role="button"
             aria-label={isExpanded ? 'Close menu' : 'Open menu'}
             tabIndex={0}
-            style={{ color: menuColor || '#000' }}
+            style={{ color: menuColor || '#000' }}            
           >
             <div
               className={`hamburger-line w-[30px] h-[2px] bg-current transition-[transform,opacity,margin] duration-300 ease-linear [transform-origin:50%_50%] ${
@@ -203,6 +203,22 @@ const CardNav: React.FC<CardNavProps> = ({
               className="nav-card select-none relative flex flex-col gap-2 p-[12px_16px] rounded-[calc(0.75rem-0.2rem)] min-w-0 flex-[1_1_auto] h-auto min-h-[60px] md:h-full md:min-h-0 md:flex-[1_1_0%]"
               ref={setCardRef(idx)}
               style={{ backgroundColor: item.bgColor, color: item.textColor }}
+              // Make the whole card keyboard-focusable and clickable
+              role="link"
+              tabIndex={0}
+              onClick={() => {
+                // navigate to the first link if available
+                const firstHref = item.links && item.links.length > 0 ? item.links[0].href : undefined;
+                if (firstHref) window.location.href = firstHref;
+              }}
+              onKeyDown={(e) => {
+                // support Enter and Space to activate the card
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  const firstHref = item.links && item.links.length > 0 ? item.links[0].href : undefined;
+                  if (firstHref) window.location.href = firstHref;
+                }
+              }}
             >
               <div className="nav-card-label font-normal tracking-[-0.5px] text-[18px] md:text-[22px]">
                 {item.label}
@@ -214,6 +230,9 @@ const CardNav: React.FC<CardNavProps> = ({
                     className="nav-card-link inline-flex items-center gap-[6px] no-underline cursor-pointer transition-opacity duration-300 hover:opacity-75 text-[15px] md:text-[16px]"
                     href={lnk.href}
                     aria-label={lnk.ariaLabel}
+                    // prevent the card's onClick from firing when clicking the inner anchor
+                    onClick={(ev) => ev.stopPropagation()}
+                    onKeyDown={(ev) => ev.stopPropagation()}
                   >
                     <GoArrowUpRight aria-hidden="true" />
                     {lnk.label}
