@@ -1,40 +1,51 @@
 import Image from "next/image";
+import logo from "../public/next.svg";
 import CardNav from "./components/nav";
 
 export default function Home() {
+
+  const items = [
+    {
+      label: "Catalogue",
+      bgColor: "#0D0716",
+      textColor: "#fff",
+      links: [
+        { label: "Company", ariaLabel: "About Company", href: "/company" },
+        { label: "Careers", ariaLabel: "About Careers", href: "/careers" }
+      ]
+    },
+    {
+      label: "Projects", 
+      bgColor: "#170D27",
+      textColor: "#fff",
+      links: [
+        { label: "Featured", ariaLabel: "Featured Projects", href: "/projects/featured" },
+        { label: "Case Studies", ariaLabel: "Project Case Studies", href: "/projects/case-studies" }
+      ]
+    },
+    // {
+    //   label: "Contact",
+    //   bgColor: "#271E37", 
+    //   textColor: "#fff",
+    //   links: [
+    //     { label: "Email", ariaLabel: "Email us", href: "mailto:info@example.com" },
+    //     { label: "Twitter", ariaLabel: "Twitter", href: "https://twitter.com/" },
+    //     { label: "LinkedIn", ariaLabel: "LinkedIn", href: "https://www.linkedin.com/" }
+    //   ]
+    // }
+  ];
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <CardNav
-        logo="/next.svg"
-        items={[
-          {
-            label: "Item 1",
-            bgColor: "#f00",
-            textColor: "#fff",
-            links: [
-              { label: "Link 1", href: "/link1", ariaLabel: "Link 1" },
-              { label: "Link 2", href: "/link2", ariaLabel: "Link 2" },
-            ],
-          },
-          {
-            label: "Item 2",
-            bgColor: "#0f0",
-            textColor: "#fff",
-            links: [
-              { label: "Link 1", href: "/link1", ariaLabel: "Link 1" },
-              { label: "Link 2", href: "/link2", ariaLabel: "Link 2" },
-            ],
-          },
-          {
-            label: "Item 3",
-            bgColor: "#00f",
-            textColor: "#fff",
-            links: [
-              { label: "Link 1", href: "/link1", ariaLabel: "Link 1" },
-              { label: "Link 2", href: "/link2", ariaLabel: "Link 2" },
-            ],
-          },
-        ]}
+        logo={"WalTer"}
+        logoAlt="WalTer"
+        items={items}
+        baseColor="#fff"
+        menuColor="#000"
+        buttonBgColor="#111"
+        buttonTextColor="#fff"
+        ease="power3.out"
       />
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         <Image
