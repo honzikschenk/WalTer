@@ -58,8 +58,10 @@ def main():
 
 	# Configure and start camera once
 	picam2 = Picamera2()
+	still_config = picam2.create_still_configuration(main={"size": (1280, 720)})
+	picam2.configure(still_config)
 	picam2.start()
-	time.sleep(2)  # settle AE/AWB briefly
+	time.sleep(1.5)  # settle AE/AWB briefly
 
 	def capture_to_tmp() -> str:
 		with tempfile.NamedTemporaryFile(prefix="frame_", suffix=".jpg", delete=False) as tmp:
