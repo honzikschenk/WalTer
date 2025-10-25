@@ -4,9 +4,9 @@ from time import sleep
 
 SERVER_URL = ""
 
-GAIN = 1
-LOOP_INTERVAL = 1
-SHUTTER_US = 1
+GAIN = 4
+LOOP_INTERVAL = 0.1
+SHUTTER_US = 8000
 
 def main():
     endpoint = RestEndpoint(SERVER_URL)
