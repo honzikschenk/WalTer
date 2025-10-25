@@ -52,10 +52,12 @@ def main():
 	auth_token = args.auth_token
 	interval_s = args.capture_interval
 
+	# Allow passing bare host:port/path by prefixing http:// if scheme is missing
+	if not (server_url.startswith("http://") or server_url.startswith("https://")):
+		server_url = "http://" + server_url
+
 	# Configure and start camera once
 	picam2 = Picamera2()
-	still_config = picam2.create_still_configuration()
-	picam2.configure(still_config)
 	picam2.start()
 	time.sleep(2)  # settle AE/AWB briefly
 
