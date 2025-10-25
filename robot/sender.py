@@ -44,6 +44,18 @@ def main():
 		default=None,
 		help="Seconds between captures"
 	)
+	parser.add_argument(
+		"--shutter-us",
+		type=int,
+		default=8000,
+		help="Force shutter (exposure) time in microseconds to reduce motion blur (e.g. 8000 ≈ 1/125s)",
+	)
+	parser.add_argument(
+		"--gain",
+		type=float,
+		default=4.0,
+		help="Analogue gain to pair with fast shutter (higher is brighter but noisier).",
+	)
 
 	args = parser.parse_args()
 
@@ -51,6 +63,8 @@ def main():
 	device_id = args.device_id
 	auth_token = args.auth_token
 	interval_s = args.capture_interval
+	shutter_us = args.shutter_us
+	gain = args.gain
 
 	# Allow passing bare host:port/path by prefixing http:// if scheme is missing
 	if not (server_url.startswith("http://") or server_url.startswith("https://")):
@@ -61,7 +75,16 @@ def main():
 	still_config = picam2.create_still_configuration(main={"size": (1280, 720)})
 	picam2.configure(still_config)
 	picam2.start()
-	time.sleep(1.5)  # settle AE/AWB briefly
+	try:
+		picam2.set_controls({
+			"AeEnable": False,
+			"ExposureTime": int(shutter_us),
+			"AnalogueGain": float(gain),
+			"AwbEnable": True,
+		})
+	except Exception as e:
+		print(f"WARN: failed to set manual exposure controls: {e}", flush=True)
+	time.sleep(0.5)
 
 	def capture_to_tmp() -> str:
 		with tempfile.NamedTemporaryFile(prefix="frame_", suffix=".jpg", delete=False) as tmp:
