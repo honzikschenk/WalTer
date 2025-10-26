@@ -1,30 +1,46 @@
-import argparse
-
 from rest import RestEndpoint, GettableState
+from camera import Camera
+from time import sleep
 
+SERVER_URL = "https://10.226.93.220:8000/upload"
+
+GAIN = 4
+LOOP_INTERVAL = -1
+SHUTTER_US = 8000
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Be a robot"
-    )
-    parser.add_argument(
-        "--server-url",
-        "-s",
-        required=True,
-        help="Full backend url",
-    )
+    endpoint = RestEndpoint(SERVER_URL)
+    camera = Camera(GAIN, SHUTTER_US)
 
-    args = parser.parse_args()
-
-    endpoint = RestEndpoint(args.server_url)
+    capturing = True
 
     while True:
-        match endpoint.get():
+        command = endpoint.get()
+        print(command)
+        match command:
             case GettableState.NONE:
                 continue
-            case GettableState.TAKE_PICTURE:
-                # take a picture
-                pass
+            case GettableState.START_CAPTURING:
+                capturing = True
+            case GettableState.STOP_CAPTURING:
+                capturing = False
+        
+        if capturing:
+            print("Attempting to capture image")
+            try:
+                img = camera.capture()
+            except Exception as e:
+                print("WARN: failed to capture image {e}", flush=True)
+                endpoint.post_error(str(e))
+                continue
+
+            endpoint.post_image(img)
+
+        if (LOOP_INTERVAL > 0):
+            sleep(LOOP_INTERVAL)
+        else:
+            break
+
 
 
 if __name__ == "__main__":
