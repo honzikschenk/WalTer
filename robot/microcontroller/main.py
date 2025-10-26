@@ -31,6 +31,30 @@ class UARTComms:
     def send_data(self, data):
         print(f"Sending data over UART: {data}")
 
+class BasicRun:
+    class State(Enum):
+        IDLE = 0
+        DRIVING = 1
+        CAPTURING = 2
+        TURNING = 3
+    
+    def __init__(self, drivetrain: Drivetrain, ultrasonic_sensor: UltrasonicSensor):
+        self.state = self.State.IDLE
+
+        self.drivetrain = drivetrain
+        self.ultrasonic_sensor = ultrasonic_sensor
+
+    def run(self):
+        match self.state:
+            case self.State.IDLE:
+                print("Robot is idle.")
+            case self.State.DRIVING:
+                print("Robot is driving.")
+            case self.State.CAPTURING:
+                print("Robot is capturing data.")
+            case self.State.TURNING:
+                print("Robot is turning.")
+
 class Main:
     def __init__(self):
         self.drive_cells = [DriveCellControl(i) for i in range(0, 1)]
