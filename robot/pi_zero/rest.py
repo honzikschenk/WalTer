@@ -4,8 +4,8 @@ import os
 
 class GettableState(Enum):
     NONE = 0
-    START_CAPTURING = 1
-    STOP_CAPTURING = 2
+    START_SWEEPING = 1
+    STOP_SWEEPING = 2
 
 class RestEndpoint:
     def __init__(self, server_url):
@@ -34,6 +34,18 @@ class RestEndpoint:
         return 200 <= r.status_code < 300
 
     def get(self) -> GettableState:
-        response = requests.get(self.server_url)
+        try:
+            response = requests.get(self.server_url)
+        except Exception as e:
+            print(f"WARN: failed to get: {e}")
 
-        return GettableState.NONE
+        match response.text:
+            case "none":
+                return GettableState.NONE
+            case "start_sweeping":
+                return GettableState.START_SWEEPING
+            case "stop_sweeping":
+                return GettableState.STOP_SWEEPING
+            case _:
+                print(f"WARN: invalid HTTP response: {response.text}")
+                return GettableState.NONE
