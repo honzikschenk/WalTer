@@ -14,11 +14,13 @@ class DriveTrainRequest(Enum):
 
 class UartDrivetrain:
     def __init__(self):
-        self.serial = serial.Serial(SERIAL_PATH, 9600, timeout=0.2)
+        self.serial = serial.Serial(SERIAL_PATH, 115200, timeout=0.2)
 
     def get_signal(self) -> DriveTrainResponse:
         try:
             response = self.serial.read(1)
+
+            print(f"Recieved: {response}")
 
             if response[0] == 0:
                 return DriveTrainResponse.TAKE_PICTURE
