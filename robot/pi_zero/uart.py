@@ -22,7 +22,9 @@ class UartDrivetrain:
 
             print(f"Recieved: {response}")
 
-            if response[0] == 0:
+            if len(response) == 0:
+                return DriveTrainResponse.NONE
+            elif response[0] == 0:
                 return DriveTrainResponse.TAKE_PICTURE
             else:
                 print(f"WARN: invalid UART response: {response}")

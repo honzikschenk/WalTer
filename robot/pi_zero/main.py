@@ -1,10 +1,10 @@
-from robot.pi_zero.rest import RestEndpoint, GettableState
-from robot.pi_zero.camera import Camera
-from robot.pi_zero.uart import UartDrivetrain, DriveTrainRequest, DriveTrainResponse
+from rest import RestEndpoint, GettableState
+from camera import Camera
+from uart import UartDrivetrain, DriveTrainRequest, DriveTrainResponse
 
 from time import sleep
 
-SERVER_URL = "http://https://walter-5o7u30r2r-fatcullens-projects.vercel.app/upload"
+SERVER_URL = "http://walter-5o7u30r2r-fatcullens-projects.vercel.app/upload"
 
 GAIN = 4
 LOOP_INTERVAL = 0.5
@@ -12,7 +12,7 @@ SHUTTER_US = 8000
 
 def main():
     endpoint = RestEndpoint(SERVER_URL)
-    # camera = Camera(GAIN, SHUTTER_US)
+    camera = Camera(GAIN, SHUTTER_US)
     uart = UartDrivetrain()
 
     capturing = True
@@ -38,12 +38,12 @@ def main():
                     print("Attempting to capture image")
                     try:
                         pass
-                        # img = camera.capture()
+                        img = camera.capture()
 
-                        # if endpoint.post_image(img):
-                        #     print("Successfully posted image")
-                        # else:
-                        #     print("WARN: recieved error code after posing image")
+                        if endpoint.post_image(img):
+                            print("Successfully posted image")
+                        else:
+                            print("WARN: recieved error code after posing image")
                     except Exception as e:
                         print("WARN: failed to capture image {e}", flush=True)
                         if not endpoint.post_error(str(e)):
