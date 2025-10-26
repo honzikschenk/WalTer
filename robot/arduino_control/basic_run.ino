@@ -12,24 +12,6 @@ enum State {
 
 static State state = IDLE;
 
-// --- Placeholders (implement these for your hardware) ---
-
-// Returns whether the system is "activated" (e.g., via UART command or switch)
-bool uartGetActivated() {
-	// TODO: Implement UARTComms.get_activated()
-	// Example: read from a shared flag set by serial input or a digital input pin
-	return false;
-}
-
-// Sends a command string over UART
-void uartSendData(const char* msg) {
-	// TODO: Implement UARTComms.send_data(msg)
-	// Example: Serial.println(msg);
-	(void)msg;
-}
-
-// --- State machine implementation ---
-
 void runStateMachineOnce() {
 	switch (state) {
 		case IDLE: {
@@ -53,9 +35,6 @@ void runStateMachineOnce() {
 				state = TURNING;
 			}
 
-			// Python example did drivetrain.drive(1, 50) — semantics unclear.
-			// Here we just drive forward with moderate power.
-			// TODO: Adjust speeds/steering based on your drivetrain implementation.
 			tankDrive(0.5f, 0.5f);
 			break;
 		}
@@ -69,10 +48,7 @@ void runStateMachineOnce() {
 			tankDrive(0.0f, 0.0f);
 			delay(500);
 
-			// Trigger image capture via UART
-			// Python: uart_comms.send_data("capture_image")
-			// TODO: Implement actual UART command
-			uartSendData("capture_image");
+			uartSendCommand("capture_image");
 
 			delay(500);
 			state = TURNING;
@@ -85,24 +61,17 @@ void runStateMachineOnce() {
 				break;
 			}
 
-			// Placeholder: indicate turning
-			// TODO: Implement an actual turn (e.g., leftNorm = -0.4, rightNorm = 0.4 for N ms)
-			Serial.println(F("Robot is turning."));
+			tankDrive(-0.4f, 0.4f);
 
-			// Optional: remain in TURNING like the Python example, or transition back to DRIVING
-			// state = DRIVING;
+			delay(1000);
+
+			state = DRIVING;
 			break;
 		}
 	}
 }
 
-void setup() {
-	Serial.begin(115200);
-	// TODO: Initialize drivetrain, ultrasonic, UART as needed
-	// e.g., pinMode for motors, set up UART, etc.
-}
-
-void loop() {
+void loopBasicRun() {
 	runStateMachineOnce();
 	delay(10); // small loop delay
 }
