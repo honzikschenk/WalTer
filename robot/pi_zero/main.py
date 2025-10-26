@@ -2,7 +2,7 @@ from rest import RestEndpoint, GettableState
 from camera import Camera
 from time import sleep
 
-SERVER_URL = "http://10.226.93.241:8000/upload"
+SERVER_URL = "http://10.226.93.241:3000/upload"
 
 GAIN = 4
 LOOP_INTERVAL = 0
@@ -19,7 +19,7 @@ def main():
         print(command)
         match command:
             case GettableState.NONE:
-                continue
+                pass
             case GettableState.START_CAPTURING:
                 capturing = True
             case GettableState.STOP_CAPTURING:
@@ -38,8 +38,10 @@ def main():
             print("Successfully posted image")
 
         if (LOOP_INTERVAL > 0):
+            print(f"Waiting {LOOP_INTERVAL} seconds")
             sleep(LOOP_INTERVAL)
         else:
+            print("done")
             return
 
 
