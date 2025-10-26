@@ -8,6 +8,23 @@ class DriveCellControl:
     def control_drive_cell(self, direction, speed):
         print(f"Driving {direction} at speed {speed}")
 
+class Drivetrain:
+    def __init__(self):
+        self.left_motor = DriveCellControl(0)
+        self.right_motor = DriveCellControl(1)
+
+    def drive(self, direction: int, speed: float):
+        self.left_motor.control_drive_cell(speed if direction == 1 else -speed)
+        self.right_motor.control_drive_cell(speed if direction == 1 else -speed)
+
+    def turn(self, direction: str, speed: float):
+        if direction == "left":
+            self.left_motor.control_drive_cell(-speed)
+            self.right_motor.control_drive_cell(speed)
+        elif direction == "right":
+            self.left_motor.control_drive_cell(speed)
+            self.right_motor.control_drive_cell(-speed)
+
 class OLEDDisplay:
     def __init__(self):
         pass
