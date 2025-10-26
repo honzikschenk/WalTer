@@ -2,28 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Grid, Layers } from 'lucide-react';
 import { supabase } from './components/supabase';
-import test from '../public/pizero.png'
-
-// -------- Example Image Id --------
-const response = await fetch(test.src);
-const blob = await response.blob();
-const file = new File([blob], "pizero.png", { type: "image/png" });
-
-const formData = new FormData();
-formData.append("file", file);
-
-const res = await fetch("/api/image-analyze", {
-  method: "POST",
-  body: formData,
-});
-
-const data1 = await res.json();
-if (!res.ok) {
-  console.error("Server error:", data1.error);
-} else {
-  console.log("Labels:", data1.labels);
-}
-// -----------------------
 
 let { data: images, error } = await supabase
   .from('images')
