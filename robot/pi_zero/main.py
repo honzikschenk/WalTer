@@ -2,10 +2,10 @@ from rest import RestEndpoint, GettableState
 from camera import Camera
 from time import sleep
 
-SERVER_URL = ""
+SERVER_URL = "https://10.226.93.220:8000/upload"
 
 GAIN = 4
-LOOP_INTERVAL = 0.1
+LOOP_INTERVAL = -1
 SHUTTER_US = 8000
 
 def main():
@@ -26,6 +26,7 @@ def main():
                 capturing = False
         
         if capturing:
+            print("Attempting to capture image")
             try:
                 img = camera.capture()
             except Exception as e:
@@ -35,7 +36,10 @@ def main():
 
             endpoint.post_image(img)
 
-        sleep(LOOP_INTERVAL)
+        if (LOOP_INTERVAL > 0):
+            sleep(LOOP_INTERVAL)
+        else:
+            break
 
 
 
