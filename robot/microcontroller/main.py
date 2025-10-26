@@ -1,4 +1,5 @@
 from machine import Pin
+import utime
 
 class DriveCellControl:
     def __init__(self, motor_number=0):
@@ -10,18 +11,36 @@ class DriveCellControl:
 class OLEDDisplay:
     def __init__(self):
         pass
-        
-    def display_message(self, message):
-        print(f"OLED Display: {message}")
+
 
 class UltrasonicSensor:
+
     def __init__(self):
-        pass
+        self.TRIG = Pin(17, Pin.OUT)
+        self.ECHO = Pin(16, Pin.IN)
         
     def get_distance(self):
-        distance = 42  # Dummy distance value
-        print(f"Ultrasonic Sensor Distance: {distance} cm")
+        self.TRIG.low()
+        utime.sleep_us(2)
+
+        self.TRIG.high()
+        utime.sleep_us(10)
+        self.TRIG.low()
+
+        while self.ECHO.value() == 0:
+            pass
+        start_time = utime.ticks_us()
+
+        while self.ECHO.value() == 1:
+            pass
+        end_time = utime.ticks_us()
+
+        duration = utime.ticks_diff(end_time, start_time)
+
+        distance = (duration * 0.343)/2
         return distance
+        
+    
     
 class UARTComms:
     def __init__(self):
