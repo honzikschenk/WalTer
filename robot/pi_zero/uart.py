@@ -1,7 +1,7 @@
 import serial
 from enum import Enum
 
-SERIAL_PATH = "/dev/ttyS0/"
+SERIAL_PATH = "/dev/ttyS0"
 
 class DriveTrainResponse(Enum):
     NONE = 0
@@ -22,7 +22,9 @@ class UartDrivetrain:
 
             print(f"Recieved: {response}")
 
-            if response[0] == 0:
+            if len(response) == 0:
+                return DriveTrainResponse.NONE
+            elif response[0] == 0:
                 return DriveTrainResponse.TAKE_PICTURE
             else:
                 print(f"WARN: invalid UART response: {response}")
