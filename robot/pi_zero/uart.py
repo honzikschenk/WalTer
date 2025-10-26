@@ -1,4 +1,4 @@
-from serial import Serial
+import serial
 from enum import Enum
 
 SERIAL_PATH = "/dev/ttyS0/"
@@ -14,7 +14,7 @@ class DriveTrainRequest(Enum):
 
 class UartDrivetrain:
     def __init__(self):
-        self.serial = Serial(SERIAL_PATH, 9600, timeout=0.5)
+        self.serial = serial.Serial(SERIAL_PATH, 9600, timeout=0.2)
 
     def get_signal(self) -> DriveTrainResponse:
         try:
@@ -26,7 +26,7 @@ class UartDrivetrain:
                 print(f"WARN: invalid UART response: {response}")
                 return DriveTrainResponse.NONE
         
-        except SerialTimeoutException as e:
+        except serial.SerialTimeoutException as e:
             return DriveTrainResponse.NONE
             
         except Exception as e:
