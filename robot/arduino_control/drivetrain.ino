@@ -46,20 +46,3 @@ void initDrivetrain() {
   digitalWrite(motor2in1Pin, LOW);
   digitalWrite(motor2in2Pin, LOW);
 }
-
-void loopDrivetrain() {
-  tankDrive(1.0f, -1.0f);
-  delay(500);
-
-  tankDrive(-1.0f, 1.0f);
-  delay(500);
-
-  tankDrive(0.5f, 0.5f);
-  delay(500);
-
-  tankDrive(-0.5f, -0.5f);
-  delay(500);
-
-  tankDrive(0.0f, 0.0f);
-  delay(2000);
-}
