@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Grid, Layers } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'
-import { POST } from './api/image-analyze/route';
+import test from '../public/pizero.png'
 
 const supabaseUrl = 'https://kzrfwiglfynrdyofkljs.supabase.co'
 const supabaseKey = process.env.SUPABASE_KEY
@@ -12,8 +12,13 @@ if (!supabaseKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
+console.log(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+const response = await fetch(test.src);
+const blob = await response.blob();
+const file = new File([blob], "test.jpeg", { type: "image/jpeg" });
 
 const formData = new FormData();
+formData.append("file", file);
 
 const res = await fetch("/api/image-analyze", {
   method: "POST",
@@ -21,6 +26,11 @@ const res = await fetch("/api/image-analyze", {
 });
 
 const data = await res.json();
+if (!res.ok) {
+  console.error("Server error:", data.error);
+} else {
+  console.log("Labels:", data.labels);
+}
 
 const mockImages = [
   { id: 1, title: 'Example 1', src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop' },
