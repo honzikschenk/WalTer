@@ -4,7 +4,7 @@ from robot.pi_zero.uart import UartDrivetrain, DriveTrainRequest, DriveTrainResp
 
 from time import sleep
 
-SERVER_URL = "http://10.226.93.241:3000/upload"
+SERVER_URL = "http://https://walter-5o7u30r2r-fatcullens-projects.vercel.app/upload"
 
 GAIN = 4
 LOOP_INTERVAL = 0.5
@@ -37,6 +37,7 @@ def main():
                 case DriveTrainResponse.TAKE_PICTURE:
                     print("Attempting to capture image")
                     try:
+                        pass
                         # img = camera.capture()
 
                         # if endpoint.post_image(img):
