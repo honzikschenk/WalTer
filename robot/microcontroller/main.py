@@ -1,4 +1,5 @@
 from machine import Pin
+from enum import Enum
 
 class DriveCellControl:
     def __init__(self, motor_number=0):
@@ -6,6 +7,23 @@ class DriveCellControl:
         
     def control_drive_cell(self, direction, speed):
         print(f"Driving {direction} at speed {speed}")
+
+class Drivetrain:
+    def __init__(self):
+        self.left_motor = DriveCellControl(0)
+        self.right_motor = DriveCellControl(1)
+
+    def drive(self, direction: int, speed: float):
+        self.left_motor.control_drive_cell(speed if direction == 1 else -speed)
+        self.right_motor.control_drive_cell(speed if direction == 1 else -speed)
+
+    def turn(self, direction: str, speed: float):
+        if direction == "left":
+            self.left_motor.control_drive_cell(-speed)
+            self.right_motor.control_drive_cell(speed)
+        elif direction == "right":
+            self.left_motor.control_drive_cell(speed)
+            self.right_motor.control_drive_cell(-speed)
 
 class OLEDDisplay:
     def __init__(self):
@@ -29,6 +47,30 @@ class UARTComms:
         
     def send_data(self, data):
         print(f"Sending data over UART: {data}")
+
+class BasicRun:
+    class State(Enum):
+        IDLE = 0
+        DRIVING = 1
+        CAPTURING = 2
+        TURNING = 3
+    
+    def __init__(self, drivetrain: Drivetrain, ultrasonic_sensor: UltrasonicSensor):
+        self.state = self.State.IDLE
+
+        self.drivetrain = drivetrain
+        self.ultrasonic_sensor = ultrasonic_sensor
+
+    def run(self):
+        match self.state:
+            case self.State.IDLE:
+                print("Robot is idle.")
+            case self.State.DRIVING:
+                print("Robot is driving.")
+            case self.State.CAPTURING:
+                print("Robot is capturing data.")
+            case self.State.TURNING:
+                print("Robot is turning.")
 
 class Main:
     def __init__(self):
