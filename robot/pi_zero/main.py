@@ -1,5 +1,5 @@
 from rest import RestEndpoint, GettableState
-from .camera import Camera
+from camera import Camera
 from time import sleep
 
 SERVER_URL = ""

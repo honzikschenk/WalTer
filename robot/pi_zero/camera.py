@@ -5,10 +5,10 @@ from picamera2 import Picamera2
 class Camera:
     def __init__(self, gain, shutter_us):
         self.picam = Picamera2()
-
-        self.picam.start()
         still_config = self.picam.create_still_configuration(main={"size": (1280, 720)})
         self.picam.configure(still_config)
+
+        self.picam.start()
 
         try:
             self.picam.set_controls({
