@@ -1,4 +1,5 @@
 from machine import Pin
+from enum import Enum
 
 class DriveCellControl:
     def __init__(self, motor_number=0):
