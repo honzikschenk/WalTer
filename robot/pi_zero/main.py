@@ -38,12 +38,17 @@ def main():
                     print("Attempting to capture image")
                     try:
                         img = camera.capture()
+
+                        if endpoint.post_image(img):
+                            print("Successfully posted image")
+                        else:
+                            print("WARN: recieved error code after posing image")
                     except Exception as e:
                         print("WARN: failed to capture image {e}", flush=True)
-                        endpoint.post_error(str(e))
+                        if not endpoint.post_error(str(e)):
+                            print("WARN: recieved error code after posing error")
 
-                    endpoint.post_image(img)
-                    print("Successfully posted image")
+                    
 
                 case DriveTrainResponse.NONE:
                     pass  
