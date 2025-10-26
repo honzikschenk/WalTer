@@ -7,7 +7,7 @@ from time import sleep
 SERVER_URL = "http://10.226.93.241:3000/upload"
 
 GAIN = 4
-LOOP_INTERVAL = 0
+LOOP_INTERVAL = 0.5
 SHUTTER_US = 8000
 
 def main():
