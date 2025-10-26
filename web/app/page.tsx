@@ -2,28 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Grid, Layers } from 'lucide-react';
 import { supabase } from './components/supabase';
-import test from '../public/pizero.png'
-
-// -------- Example Image Id --------
-const response = await fetch(test.src);
-const blob = await response.blob();
-const file = new File([blob], "pizero.png", { type: "image/png" });
-
-const formData = new FormData();
-formData.append("file", file);
-
-const res = await fetch("/api/image-analyze", {
-  method: "POST",
-  body: formData,
-});
-
-const data1 = await res.json();
-if (!res.ok) {
-  console.error("Server error:", data1.error);
-} else {
-  console.log("Labels:", data1.labels);
-}
-// -----------------------
 
 let { data: images, error } = await supabase
   .from('images')
@@ -32,7 +10,7 @@ let { data: images, error } = await supabase
 const mockImages = images ? images.map(img => ({
   id: img.id,
   title: img.title,
-  src: img.src,
+  src: `data:image/jpeg;base64,${img.src}`,
 })) : [];
 
 type Page = 'home' | 'projects';
@@ -200,15 +178,388 @@ const HomePage: React.FC<HomePageProps> = ({ searchTerm, setSearchTerm }) => {
   );
 };
 
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  goals: string;
+  component_ids: number[];
+  created_at: string;
+}
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 const ProjectsPage = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [newProjectGoals, setNewProjectGoals] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  // Load projects from Supabase
+  React.useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (data) setProjects(data);
+  };
+
+  const createProject = async () => {
+    if (!newProjectName.trim()) return;
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([{
+        name: newProjectName,
+        description: newProjectDescription,
+        goals: newProjectGoals,
+        component_ids: []
+      }])
+      .select();
+
+    if (data) {
+      setProjects([data[0], ...projects]);
+      setSelectedProject(data[0]);
+      setIsCreatingProject(false);
+      setNewProjectName('');
+      setNewProjectDescription('');
+      setNewProjectGoals('');
+    }
+  };
+
+  const deleteProject = async (projectId: number) => {
+    await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId);
+    
+    setProjects(projects.filter(p => p.id !== projectId));
+    if (selectedProject?.id === projectId) {
+      setSelectedProject(null);
+      setMessages([]);
+    }
+  };
+
+  const toggleComponent = async (componentId: number) => {
+    if (!selectedProject) return;
+
+    const componentIds = selectedProject.component_ids || [];
+    const newComponentIds = componentIds.includes(componentId)
+      ? componentIds.filter(id => id !== componentId)
+      : [...componentIds, componentId];
+
+    const { data } = await supabase
+      .from('projects')
+      .update({ component_ids: newComponentIds })
+      .eq('id', selectedProject.id)
+      .select();
+
+    if (data) {
+      const updatedProject = data[0];
+      setSelectedProject(updatedProject);
+      setProjects(projects.map(p => p.id === updatedProject.id ? updatedProject : p));
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || !selectedProject || isSending) return;
+
+    const userMessage: Message = { role: 'user', content: inputMessage };
+    setMessages([...messages, userMessage]);
+    setInputMessage('');
+    setIsSending(true);
+
+    try {
+      // Get selected components
+      const selectedComponents = mockImages.filter(img => 
+        selectedProject.component_ids?.includes(img.id)
+      );
+
+      // Call Gemini API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputMessage,
+          projectContext: {
+            name: selectedProject.name,
+            description: selectedProject.description,
+            goals: selectedProject.goals,
+            components: selectedComponents.map(c => c.title)
+          }
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const aiMessage: Message = {
+          role: 'assistant',
+          content: data.message
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.'
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const selectedComponents = selectedProject 
+    ? mockImages.filter(img => selectedProject.component_ids?.includes(img.id))
+    : [];
+
   return (
-    <div className="min-h-screen pt-32 pb-20 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center">
-          <h1 className="text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 animate-gradient leading-tight">
-            Projects
-          </h1>
-          <p className="text-slate-400 text-xl">example</p>
+    <div className="min-h-screen pt-24 pb-20 px-6">
+      <div className="max-w-[1800px] mx-auto">
+        <div className="flex gap-6 h-[calc(100vh-8rem)]">
+          {/* Sidebar - Projects List */}
+          <div className="w-80 flex-shrink-0">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 h-full overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Projects</h2>
+                <button
+                  onClick={() => setIsCreatingProject(true)}
+                  className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
+                >
+                  <Layers className="w-5 h-5" />
+                </button>
+              </div>
+
+              {isCreatingProject && (
+                <div className="mb-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+                  <input
+                    type="text"
+                    placeholder="Project name"
+                    value={newProjectName}
+                    onChange={(e) => setNewProjectName(e.target.value)}
+                    className="w-full bg-slate-800 text-white px-3 py-2 rounded-lg mb-2 outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <textarea
+                    placeholder="Description"
+                    value={newProjectDescription}
+                    onChange={(e) => setNewProjectDescription(e.target.value)}
+                    className="w-full bg-slate-800 text-white px-3 py-2 rounded-lg mb-2 outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                    rows={2}
+                  />
+                  <textarea
+                    placeholder="Goals"
+                    value={newProjectGoals}
+                    onChange={(e) => setNewProjectGoals(e.target.value)}
+                    className="w-full bg-slate-800 text-white px-3 py-2 rounded-lg mb-3 outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                    rows={2}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={createProject}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    >
+                      Create
+                    </button>
+                    <button
+                      onClick={() => setIsCreatingProject(false)}
+                      className="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-300 group relative ${
+                      selectedProject?.id === project.id
+                        ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50'
+                        : 'bg-slate-900/50 border border-slate-700 hover:border-slate-600'
+                    }`}
+                    onClick={() => {
+                      setSelectedProject(project);
+                      setMessages([]);
+                    }}
+                  >
+                    <h3 className="text-white font-semibold mb-1">{project.name}</h3>
+                    <p className="text-slate-400 text-sm line-clamp-2">{project.description}</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteProject(project.id);
+                      }}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-all"
+                    >
+                      <span className="text-red-400 text-xs">×</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          {selectedProject ? (
+            <div className="flex-1 flex gap-6">
+              {/* Components Panel */}
+              <div className="w-96 flex-shrink-0">
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 h-full flex flex-col">
+                  <h3 className="text-xl font-bold text-white mb-4">Components</h3>
+                  <div className="flex-1 overflow-y-auto space-y-3">
+                    {mockImages.map((image) => {
+                      const isSelected = selectedProject.component_ids?.includes(image.id);
+                      return (
+                        <div
+                          key={image.id}
+                          onClick={() => toggleComponent(image.id)}
+                          className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50'
+                              : 'bg-slate-900/50 border border-slate-700 hover:border-slate-600'
+                          }`}
+                        >
+                          <img
+                            src={image.src}
+                            alt={image.title}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                          <div className="flex-1">
+                            <h4 className="text-white font-medium">{image.title}</h4>
+                          </div>
+                          {isSelected && (
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                              <span className="text-white text-sm">✓</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Panel */}
+              <div className="flex-1">
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 h-full flex flex-col">
+                  {/* Chat Header */}
+                  <div className="p-6 border-b border-slate-700/50">
+                    <h3 className="text-2xl font-bold text-white mb-2">{selectedProject.name}</h3>
+                    <p className="text-slate-400 text-sm mb-2">{selectedProject.description}</p>
+                    {selectedProject.goals && (
+                      <p className="text-purple-400 text-sm">
+                        <span className="font-semibold">Goals:</span> {selectedProject.goals}
+                      </p>
+                    )}
+                    {selectedComponents.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {selectedComponents.map(comp => (
+                          <span key={comp.id} className="px-3 py-1 bg-slate-900/50 rounded-full text-xs text-slate-300 border border-slate-700">
+                            {comp.title}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Messages */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    {messages.length === 0 ? (
+                      <div className="text-center py-20">
+                        <p className="text-slate-400 text-lg">Start a conversation about your project!</p>
+                        <p className="text-slate-500 text-sm mt-2">Ask for suggestions, improvements, or guidance.</p>
+                      </div>
+                    ) : (
+                      messages.map((msg, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] p-4 rounded-2xl ${
+                              msg.role === 'user'
+                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                : 'bg-slate-900/50 text-slate-200 border border-slate-700'
+                            }`}
+                          >
+                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    {isSending && (
+                      <div className="flex justify-start">
+                        <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-2xl">
+                          <div className="flex gap-2">
+                            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Input */}
+                  <div className="p-6 border-t border-slate-700/50">
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                        placeholder="Ask about your project..."
+                        className="flex-1 bg-slate-900/50 text-white px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700"
+                        disabled={isSending}
+                      />
+                      <button
+                        onClick={sendMessage}
+                        disabled={isSending || !inputMessage.trim()}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                  <Layers className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">No Project Selected</h3>
+                <p className="text-slate-400">Create or select a project to get started</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 export default function LatestImage() {
   const [tick, setTick] = useState(0)
-  const intervalMs = 10
+  const intervalMs = 1000
 
   useEffect(() => {
     const id = setInterval(() => setTick((v) => v + 1), intervalMs)

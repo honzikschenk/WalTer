@@ -2,6 +2,7 @@
 
 void setup() {
   Serial.begin(115200);
+  initUart(115200);
 
   initDrivetrain();
   initDisplay();
@@ -9,6 +10,8 @@ void setup() {
 }
 
 void loop() {
+  loopUart();
+
   Serial.println(getDistance());
 
   loopDisplay();
