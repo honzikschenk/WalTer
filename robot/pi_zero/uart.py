@@ -1,7 +1,7 @@
 import serial
 from enum import Enum
 
-SERIAL_PATH = "/dev/ttyS0/"
+SERIAL_PATH = "/dev/ttyS0"
 
 class DriveTrainResponse(Enum):
     NONE = 0

@@ -4,7 +4,7 @@ from uart import UartDrivetrain, DriveTrainRequest, DriveTrainResponse
 
 from time import sleep
 
-SERVER_URL = "http://walter-5o7u30r2r-fatcullens-projects.vercel.app/upload"
+SERVER_URL = "http://walterbot.tech/upload"
 
 GAIN = 4
 LOOP_INTERVAL = 0.5
@@ -17,18 +17,20 @@ def main():
 
     capturing = True
 
+    uart.send_signal(DriveTrainRequest.START_SWEEPING)
+
     while True:
-        command = endpoint.get()
-        print(command)
-        match command:
-            case GettableState.NONE:
-                pass
-            case GettableState.START_SWEEPING:
-                uart.send_signal(DriveTrainRequest.START_SWEEPING)
-                capturing = True
-            case GettableState.STOP_SWEEPING:
-                uart.send_signal(DriveTrainRequest.STOP_SWEEPING)
-                capturing = False
+        # command = endpoint.get()
+        # print(command)
+        # match command:
+        #     case GettableState.NONE:
+        #         pass
+        #     case GettableState.START_SWEEPING:
+        #         uart.send_signal(DriveTrainRequest.START_SWEEPING)
+        #         capturing = True
+        #     case GettableState.STOP_SWEEPING:
+        #         uart.send_signal(DriveTrainRequest.STOP_SWEEPING)
+        #         capturing = False
         
         if capturing:
             response = uart.get_signal()
