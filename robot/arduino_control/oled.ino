@@ -15,6 +15,12 @@ int leftEyeX = 30;
 int rightEyeX = 78;
 int eyeY = 24;
 
+const bool SEQ_OPEN[] = { true, false, true, false, true };
+const uint16_t SEQ_MS[] = { 4000, 200, 200, 200, 400 };
+const uint8_t SEQ_LEN = sizeof(SEQ_OPEN) / sizeof(SEQ_OPEN[0]);
+static uint8_t g_idx = 0;
+static unsigned long g_nextAt = 0;
+
 void drawOpenEyes() {
   display.fillRect(leftEyeX, eyeY, eyeWidth, eyeHeight, SSD1306_WHITE);  // Left eye
   display.fillRect(rightEyeX, eyeY, eyeWidth, eyeHeight, SSD1306_WHITE); // Right eye
@@ -27,41 +33,32 @@ void drawClosedEyes() {
   display.fillRect(rightEyeX, eyeY+eyeHeight/2, eyeWidth, 2, SSD1306_WHITE); // Right closed
 }
 
-void blinkEyes() {
-  display.clearDisplay();
-  drawClosedEyes();
-  display.display();
-  delay(200); // eyes closed duration
-
-  display.clearDisplay();
-  drawOpenEyes();
-  display.display();
-  delay(200); // eyes open duration
-
-  display.clearDisplay();
-  drawClosedEyes();
-  display.display();
-  delay(200); // eyes closed duration
-
-  display.clearDisplay();
-  drawOpenEyes();
-  display.display();
-  delay(400); // eyes open duration
-}
-
 void initDisplay() {
   Wire.begin();
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
     for (;;);
   }
   display.clearDisplay();
+
+  g_idx = 0;
+  g_nextAt = 0;
 }
 
 void loopDisplay() {
-  display.clearDisplay();
-  drawOpenEyes();
-  display.display();
-  delay(4000); // eyes open duration
+  unsigned long now = millis();
 
-  blinkEyes();
+  if ((long)(now - g_nextAt) >= 0) {
+    // Draw current frame
+    display.clearDisplay();
+    if (SEQ_OPEN[g_idx]) {
+      drawOpenEyes();
+    } else {
+      drawClosedEyes();
+    }
+    display.display();
+
+    // Schedule next step
+    g_nextAt = now + SEQ_MS[g_idx];
+    g_idx = (g_idx + 1) % SEQ_LEN;
+  }
 }
