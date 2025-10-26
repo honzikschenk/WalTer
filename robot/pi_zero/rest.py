@@ -36,16 +36,21 @@ class RestEndpoint:
     def get(self) -> GettableState:
         try:
             response = requests.get(self.server_url)
+
+            match response.text:
+                case "none":
+                    return GettableState.NONE
+                case "start_sweeping":
+                    return GettableState.START_SWEEPING
+                case "stop_sweeping":
+                    return GettableState.STOP_SWEEPING
+                case _:
+                    print(f"WARN: invalid HTTP response: {response.text}")
+                    return GettableState.NONE
+            
         except Exception as e:
             print(f"WARN: failed to get: {e}")
+            return GettableState.NONE
 
-        match response.text:
-            case "none":
-                return GettableState.NONE
-            case "start_sweeping":
-                return GettableState.START_SWEEPING
-            case "stop_sweeping":
-                return GettableState.STOP_SWEEPING
-            case _:
-                print(f"WARN: invalid HTTP response: {response.text}")
-                return GettableState.NONE
+
+        
