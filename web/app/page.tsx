@@ -1,6 +1,16 @@
 "use client";
 import React, { useState, useMemo } from 'react';
 import { Search, Grid, Layers } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = 'https://kzrfwiglfynrdyofkljs.supabase.co'
+const supabaseKey = process.env.SUPABASE_KEY
+
+if (!supabaseKey) {
+  throw new Error('Missing SUPABASE_KEY environment variable');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 const mockImages = [
   { id: 1, title: 'Example 1', src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop' },
