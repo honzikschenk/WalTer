@@ -32,7 +32,7 @@ let { data: images, error } = await supabase
 const mockImages = images ? images.map(img => ({
   id: img.id,
   title: img.title,
-  src: img.src,
+  src: `data:image/jpeg;base64,${img.src}`,
 })) : [];
 
 type Page = 'home' | 'projects';
