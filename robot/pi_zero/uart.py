@@ -14,7 +14,7 @@ class DriveTrainRequest(Enum):
 
 class UartDrivetrain:
     def __init__(self):
-        self.serial = serial.Serial(SERIAL_PATH, 9600, timeout=0.5)
+        self.serial = serial.Serial(SERIAL_PATH, 9600, timeout=0.2)
 
     def get_signal(self) -> DriveTrainResponse:
         try:
