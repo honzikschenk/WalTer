@@ -1,21 +1,13 @@
 "use client";
 import React, { useState, useMemo } from 'react';
 import { Search, Grid, Layers } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from './components/supabase';
 import test from '../public/pizero.png'
 
-const supabaseUrl = 'https://kzrfwiglfynrdyofkljs.supabase.co'
-const supabaseKey = process.env.SUPABASE_KEY
-
-if (!supabaseKey) {
-  throw new Error('Missing SUPABASE_KEY environment variable');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseKey)
-console.log(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+// -------- Example Image Id --------
 const response = await fetch(test.src);
 const blob = await response.blob();
-const file = new File([blob], "test.jpeg", { type: "image/jpeg" });
+const file = new File([blob], "pizero.png", { type: "image/png" });
 
 const formData = new FormData();
 formData.append("file", file);
@@ -25,23 +17,23 @@ const res = await fetch("/api/image-analyze", {
   body: formData,
 });
 
-const data = await res.json();
+const data1 = await res.json();
 if (!res.ok) {
-  console.error("Server error:", data.error);
+  console.error("Server error:", data1.error);
 } else {
-  console.log("Labels:", data.labels);
+  console.log("Labels:", data1.labels);
 }
+// -----------------------
 
-const mockImages = [
-  { id: 1, title: 'Example 1', src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop' },
-  { id: 2, title: 'Example 2', src: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800&h=600&fit=crop' },
-  { id: 3, title: 'Example 3', src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop' },
-  { id: 4, title: 'Example 4', src: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=600&fit=crop' },
-  { id: 5, title: 'Example 5', src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop' },
-  { id: 6, title: 'Example 6', src: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&h=600&fit=crop' },
-  { id: 7, title: 'Example 7', src: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&h=600&fit=crop' },
-  { id: 8, title: 'Example 8', src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop' },
-];
+let { data: images, error } = await supabase
+  .from('images')
+  .select('*')
+
+const mockImages = images ? images.map(img => ({
+  id: img.id,
+  title: img.title,
+  src: img.src,
+})) : [];
 
 type Page = 'home' | 'projects';
 
