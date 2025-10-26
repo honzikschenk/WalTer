@@ -1,5 +1,7 @@
-from rest import RestEndpoint, GettableState
-from camera import Camera
+from robot.pi_zero.rest import RestEndpoint, GettableState
+from robot.pi_zero.camera import Camera
+from robot.pi_zero.uart import UartDrivetrain, DriveTrainRequest, DriveTrainResponse
+
 from time import sleep
 
 SERVER_URL = "http://10.226.93.241:3000/upload"
@@ -11,6 +13,7 @@ SHUTTER_US = 8000
 def main():
     endpoint = RestEndpoint(SERVER_URL)
     camera = Camera(GAIN, SHUTTER_US)
+    uart = UartDrivetrain()
 
     capturing = True
 
@@ -20,22 +23,35 @@ def main():
         match command:
             case GettableState.NONE:
                 pass
-            case GettableState.START_CAPTURING:
+            case GettableState.START_SWEEPING:
+                uart.send_signal(DriveTrainRequest.START_SWEEPING)
                 capturing = True
-            case GettableState.STOP_CAPTURING:
+            case GettableState.STOP_SWEEPING:
+                uart.send_signal(DriveTrainRequest.STOP_SWEEPING)
                 capturing = False
         
         if capturing:
-            print("Attempting to capture image")
-            try:
-                img = camera.capture()
-            except Exception as e:
-                print("WARN: failed to capture image {e}", flush=True)
-                endpoint.post_error(str(e))
-                continue
+            response = uart.get_signal()
 
-            endpoint.post_image(img)
-            print("Successfully posted image")
+            match response:
+                case DriveTrainResponse.TAKE_PICTURE:
+                    print("Attempting to capture image")
+                    try:
+                        img = camera.capture()
+
+                        if endpoint.post_image(img):
+                            print("Successfully posted image")
+                        else:
+                            print("WARN: recieved error code after posing image")
+                    except Exception as e:
+                        print("WARN: failed to capture image {e}", flush=True)
+                        if not endpoint.post_error(str(e)):
+                            print("WARN: recieved error code after posing error")
+
+                    
+
+                case DriveTrainResponse.NONE:
+                    pass  
 
         if (LOOP_INTERVAL > 0):
             print(f"Waiting {LOOP_INTERVAL} seconds")
