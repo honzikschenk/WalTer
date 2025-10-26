@@ -102,9 +102,6 @@ const ImageCard: React.FC<{ image: { id: number; title: string; src: string }; i
       style={{
         animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
     >
       <div className="relative overflow-hidden rounded-2xl bg-slate-800 shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-purple-500/30">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
@@ -115,13 +112,6 @@ const ImageCard: React.FC<{ image: { id: number; title: string; src: string }; i
             alt={image.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
-          
-          {/* Request overlay text */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 z-40">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-3 rounded-full shadow-2xl transform scale-90 group-hover:scale-100 transition-transform duration-500">
-              <span className="text-white font-bold text-2xl">Request</span>
-            </div>
-          </div>
         </div>
         
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20"></div>
